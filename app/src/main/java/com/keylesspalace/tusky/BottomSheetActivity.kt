@@ -167,7 +167,7 @@ abstract class BottomSheetActivity : BaseActivity() {
     }
 
     private fun showQuerySheet() {
-        bottomSheet.state = BottomSheetBehavior.STATE_COLLAPSED
+        if (::bottomSheet.isInitialized) bottomSheet.state = BottomSheetBehavior.STATE_COLLAPSED
     }
 
     private fun hideQuerySheet() {

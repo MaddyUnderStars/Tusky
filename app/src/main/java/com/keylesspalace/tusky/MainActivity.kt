@@ -202,7 +202,8 @@ class MainActivity : BottomSheetActivity(), ActionButtonActivity, HasAndroidInje
             val notificationId = intent.getIntExtra(NOTIFICATION_ID, -1)
             if (notificationId != -1) {
                 // opened from a notification action, cancel the notification
-                val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+                val notificationManager =
+                    getSystemService(NOTIFICATION_SERVICE) as NotificationManager
                 notificationManager.cancel(intent.getStringExtra(NOTIFICATION_TAG), notificationId)
             }
 
@@ -399,6 +400,11 @@ class MainActivity : BottomSheetActivity(), ActionButtonActivity, HasAndroidInje
 
         // "Post failed" dialog should display in this activity
         draftsAlert.observeInContext(this, true)
+
+        if (intent.action == "dev.zwander.mastodonredirect.intent.action.OPEN_FEDI_LINK") {
+            viewUrl(intent.data.toString());
+            return;
+        }
     }
 
     private fun showDirectMessageBadge(showBadge: Boolean) {
