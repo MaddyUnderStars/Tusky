@@ -33,6 +33,7 @@ import com.keylesspalace.tusky.network.MastodonApi
 import com.keylesspalace.tusky.usecase.TimelineCases
 import com.keylesspalace.tusky.util.toViewData
 import com.keylesspalace.tusky.viewdata.StatusViewData
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -160,7 +161,8 @@ class SearchViewModel @Inject constructor(
     }
 
     fun translate(statusViewData: StatusViewData.Concrete, translate: Boolean) {
-        viewModelScope.launch {
+        val handler = CoroutineExceptionHandler() { _, t -> Log.d(TAG, "Failed to translate status", t)}
+        viewModelScope.launch(handler) {
             val translation = timelineCases.translate(statusViewData.actionableId, translate)
             updateStatusViewData(statusViewData.copyWithTranslationResult(translation))
         }

@@ -59,6 +59,7 @@ import com.keylesspalace.tusky.util.openLink
 import com.keylesspalace.tusky.util.parseAsMastodonHtml
 import com.keylesspalace.tusky.view.showMuteAccountDialog
 import com.keylesspalace.tusky.viewdata.AttachmentViewData
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -192,7 +193,7 @@ abstract class SFragment : Fragment(), Injectable {
             )
         }
         menu.findItem(R.id.status_untranslate).isVisible = translated ?: false
-        menu.findItem(R.id.status_translate).isVisible = translated?.not() ?: false;
+        menu.findItem(R.id.status_translate).isVisible = translated?.not() ?: false
 
         popup.setOnMenuItemClickListener { item: MenuItem ->
             when (item.itemId) {
@@ -292,7 +293,8 @@ abstract class SFragment : Fragment(), Injectable {
                     return@setOnMenuItemClickListener true
                 }
                 R.id.status_translate -> {
-                    lifecycleScope.launch {
+                    val handler = CoroutineExceptionHandler { _, t -> Log.d(TAG, "Failed to translate status " + status.actionableId, t)}
+                    lifecycleScope.launch(handler) {
                         timelineCases.translate(status.actionableId, true)
                     }
                     return@setOnMenuItemClickListener true
