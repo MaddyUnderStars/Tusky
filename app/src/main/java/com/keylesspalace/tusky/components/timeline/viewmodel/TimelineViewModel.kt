@@ -75,6 +75,7 @@ abstract class TimelineViewModel(
     private var alwaysOpenSpoilers = false
     private var filterRemoveReplies = false
     private var filterRemoveReblogs = false
+    private var filterRemoveSelfReblogs = false
     protected var readingOrder: ReadingOrder = ReadingOrder.OLDEST_FIRST
 
     fun init(kind: Kind, id: String?, tags: List<String>) {
@@ -90,6 +91,8 @@ abstract class TimelineViewModel(
                     !sharedPreferences.getBoolean(PrefKeys.TAB_FILTER_HOME_REPLIES, true)
             filterRemoveReblogs =
                     !sharedPreferences.getBoolean(PrefKeys.TAB_FILTER_HOME_BOOSTS, true)
+            filterRemoveSelfReblogs =
+                !sharedPreferences.getBoolean(PrefKeys.TAB_SHOW_HOME_SELF_BOOSTS, true)
         }
         readingOrder = ReadingOrder.from(sharedPreferences.getString(PrefKeys.READING_ORDER, null))
 
@@ -208,8 +211,10 @@ abstract class TimelineViewModel(
 
     protected fun shouldFilterStatus(statusViewData: StatusViewData): Filter.Action {
         val status = statusViewData.asStatusOrNull()?.status ?: return Filter.Action.NONE
-        return if ((status.inReplyToId != null && filterRemoveReplies) ||
-                        (status.reblog != null && filterRemoveReblogs)
+        return if (
+            (status.inReplyToId != null && filterRemoveReplies) ||
+            (status.reblog != null && filterRemoveReblogs) ||
+            ((status.account.id == status.reblog?.account?.id) && filterRemoveSelfReblogs)
         ) {
             return Filter.Action.HIDE
         } else {
@@ -236,11 +241,15 @@ abstract class TimelineViewModel(
                     fullReload()
                 }
             }
-            FilterV1.HOME,
-            FilterV1.NOTIFICATIONS,
-            FilterV1.THREAD,
-            FilterV1.PUBLIC,
-            FilterV1.ACCOUNT -> {
+            PrefKeys.TAB_SHOW_HOME_SELF_BOOSTS -> {
+                val filter = sharedPreferences.getBoolean(PrefKeys.TAB_SHOW_HOME_SELF_BOOSTS, true)
+                val oldRemoveSelfReblogs = filterRemoveSelfReblogs
+                filterRemoveSelfReblogs = kind == Kind.HOME && !filter
+                if (oldRemoveSelfReblogs != filterRemoveSelfReblogs) {
+                    fullReload()
+                }
+            }
+            FilterV1.HOME, FilterV1.NOTIFICATIONS, FilterV1.THREAD, FilterV1.PUBLIC, FilterV1.ACCOUNT -> {
                 if (filterContextMatchesKind(kind, listOf(key))) {
                     reloadFilters()
                 }
